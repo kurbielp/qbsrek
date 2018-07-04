@@ -3,6 +3,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -16,6 +17,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +57,7 @@ public class MainWindow extends Application {
         gridTop.setVgap(10);
         gridTop.setPadding(new Insets(25, 25, 25, 25));
 
-        Text scenetitle = new Text("Parametry zmiany");
+        final Text scenetitle = new Text("Parametry zmiany");
         scenetitle.setFont(Font.font("Podmieniacz", FontWeight.NORMAL, 16));
         gridTop.add(scenetitle, 0, 0, 2, 1);
 
@@ -114,10 +116,13 @@ public class MainWindow extends Application {
         final ComboBox codingComboBox = new ComboBox();
         codingComboBox.getItems().addAll(
                 "UTF-8",
-                "UTF-16",
+                "Unicode",
                 "ASCII"
 
         );
+        codingComboBox.getSelectionModel().selectFirst();
+        Label lblCodingType = new Label("Typ kodowania:");
+        gridCenterRight.add(lblCodingType, 0, 5);
 
         gridCenterRight.add(codingComboBox, 1, 5);
 
@@ -139,7 +144,7 @@ public class MainWindow extends Application {
         TextField txtInputString2 = new TextField();
         grid.add(txtInputString2, 1, 4);
         */
-
+        final boolean[][] invalidConditions = {{false,false,false,false}};
         final List<File> listF = new ArrayList<File>();
         Button btnReplace = new Button();
         btnReplace.setText("Replace");
@@ -147,8 +152,50 @@ public class MainWindow extends Application {
 
             public void handle(ActionEvent event) {
                 if (labelSelectedDirectory.getText() == "No Directory selected"){
+                    invalidConditions[0][1] =true;
+                } else { invalidConditions[0][1] =false;}
+                if (txtExtensionName.getText().equals("")){
+                    invalidConditions[0][2] =true;
+                } else {invalidConditions[0][2] =false;}
+                if (txtInputStringOld.getText().equals("")){
+                    invalidConditions[0][3] =true;
+                } else {invalidConditions[0][3] =false;}
 
+                if (invalidConditions[0][1]==false && invalidConditions[0][2]==false && invalidConditions[0][3]==false) {
+                    invalidConditions[0][0]=false;
+                } else { invalidConditions[0][0]=true;}
+                System.out.println(invalidConditions[0][0]);
+                if(invalidConditions[0][0]==true){
+                    Stage errorWindow = new Stage();
+                    errorWindow.setTitle("Błąd");
+                    GridPane gridError = new GridPane();
 
+                    gridError.setAlignment(Pos.TOP_LEFT);
+                    gridError.setHgap(10);
+                    gridError.setVgap(10);
+                    gridError.setPadding(new Insets(25, 25, 25, 25));
+                    Label lblError= new Label("Wystąpiły następujące błędy: \n");
+                    if (invalidConditions[0][1]==true)
+                        lblError.setText(lblError.getText() + "Nie wybrano folderu \n");
+                    if (invalidConditions[0][2]==true)
+                        lblError.setText(lblError.getText() + "Nie wprowadzono rozszerzenia pliku \n");
+                    if (invalidConditions[0][3]==true)
+                        lblError.setText(lblError.getText() + "Nie wprowadzono ciągu znaków (stary) \n");
+                    gridError.add(lblError, 0, 0);
+                    final Button btnErrorClose = new Button();
+                    btnErrorClose.setText("OK");
+                    btnErrorClose.setOnAction(new EventHandler<ActionEvent>() {
+
+                        public void handle(ActionEvent event) {
+                            // get a handle to the stage
+                            Stage stage = (Stage) btnErrorClose.getScene().getWindow();
+                            // do what you have to do
+                            stage.close();
+                        }
+                    });
+                    gridError.add(btnErrorClose, 0, 1);
+                    errorWindow.setScene(new Scene(gridError, 300, 300));
+                    errorWindow.show();
                 }
                 else {
                     ChangeFiles changeFiles = new ChangeFiles();
@@ -172,7 +219,7 @@ public class MainWindow extends Application {
                 }
             }
         });
-        gridCenterRight.add(btnReplace, 0, 5);
+        gridCenterRight.add(btnReplace, 0, 6);
 
         ScrollPane sp = new ScrollPane();
         sp.setContent(gridCenterLeft);

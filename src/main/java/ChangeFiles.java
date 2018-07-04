@@ -49,7 +49,7 @@ public class ChangeFiles {
                 if (file.isFile() && fileExtension.equals(FilenameUtils.getExtension(file.getName())) ) {
 
 
-                        System.out.println("ZNALAZlem txtka");
+                        System.out.println("ZNALAZlem plik");
                         //System.out.println();
                         try{
 
@@ -58,7 +58,8 @@ public class ChangeFiles {
                             replacementPlace.clear();
                             naiveAlgoritm(data,patternOld);
                             byte [] outputBytes = new byte[data.length + (patternNew.length-patternOld.length)*replacementPlace.size()];
-                            naiveAlgoritm(data,patternOld);
+                            System.out.println(replacementPlace.size());
+                            //naiveAlgoritm(data,patternOld);
                             try {
                                 outputBytes = replaceBytes(data, patternOld, patternNew);
                             }catch (Exception eReplace){
@@ -87,7 +88,7 @@ public class ChangeFiles {
     public void naiveAlgoritm (byte[] data, byte[] patternOld){
         int n = data.length;
         int m = patternOld.length;
-        System.out.println("Indeksy wystapien wzorca w tekscie");
+
         int j;
         int i=0;
         while (i<=n-m)
@@ -95,7 +96,7 @@ public class ChangeFiles {
             j=0;
             while ((j<m) && (patternOld[j] == data[i+j])) j++;
             if (j==m)
-                replacementPlace.add(i+1);
+                replacementPlace.add(i);
             i++;
         }
     }
@@ -115,18 +116,24 @@ public class ChangeFiles {
             int tempDestPos=0;
             int tempLength=0;
             int tempSourcePos=0;
-
-            System.arraycopy(data, 0, result, 0, replacementPlace.get(0) - 1);
+            System.out.println(patternNew.toString());
+            System.arraycopy(data, 0, result, 0, replacementPlace.get(0) );
             for (int i = 0; i < replacementPlace.size()-1; i++) {
-                System.arraycopy(patternNew, 0, result , replacementPlace.get(i) + tempDifference*i , patternNew.length);
+                if(replacementPlace.get(i)+tempDifference*i<result.length)
+                    System.arraycopy(patternNew, 0, result , replacementPlace.get(i) + tempDifference*(i) , patternNew.length);
                 tempSourcePos=replacementPlace.get(i)+patternOld.length;
-                tempDestPos = tempSourcePos + tempDifference*(i+1);
-                tempLength = replacementPlace.get(i+1) -  replacementPlace.get(i);
-                System.arraycopy(data, tempSourcePos, result, tempDestPos , tempLength );
+                tempDestPos = replacementPlace.get(i) + (tempDifference)*(i) + patternNew.length ;
+                if (i+1<replacementPlace.size())
+                    tempLength = replacementPlace.get(i+1) -  replacementPlace.get(i)-patternNew.length;
+                else
+                    tempLength = result.length -  replacementPlace.get(i)-patternNew.length;
+                //tempLength = replacementPlace.get(i+1) -  replacementPlace.get(i);
+                if(tempDestPos<result.length)
+                    System.arraycopy(data, tempSourcePos, result, tempDestPos , tempLength );
 
             }
-            setCounterReplace(replacementPlace.size());
-            System.out.println(result.toString());
+            setCounterReplace(replacementPlace.size()-1);
+            System.out.println("RESULT " + result.toString());
             return result;
         }
     }
