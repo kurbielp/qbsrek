@@ -3,9 +3,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -38,7 +35,9 @@ public class ChangeFiles {
 
     private int counterReplace = 0;
 
-    public void listf(String directoryPath, List<File> files , String fileExtension, String patternOld,String patternNew ){
+    ArrayList<Integer> replacementPlace = new ArrayList<Integer>();
+
+    public void listf(String directoryPath, List<File> files , String fileExtension, byte[] patternOld,byte[] patternNew ){
 
 
         File directory = new File(directoryPath);
@@ -49,35 +48,32 @@ public class ChangeFiles {
             for (File file : fList) {
                 if (file.isFile() && fileExtension.equals(FilenameUtils.getExtension(file.getName())) ) {
 
-                    if(FilenameUtils.getExtension(file.getName()).equals("txt")){
+
                         System.out.println("ZNALAZlem txtka");
                         //System.out.println();
                         try{
 
-                            Path path = Paths.get(file.getAbsolutePath());
-                            byte[] data =
+                            //byte[] data = readBytesFromFile(file.getAbsolutePath());
+                            byte[] data = FileUtils.readFileToByteArray(file);
+                            replacementPlace.clear();
+                            naiveAlgoritm(data,patternOld);
+                            byte [] outputBytes = new byte[data.length + (patternNew.length-patternOld.length)*replacementPlace.size()];
+                            naiveAlgoritm(data,patternOld);
+                            try {
+                                outputBytes = replaceBytes(data, patternOld, patternNew);
+                            }catch (Exception eReplace){
+                                System.out.println("[qbsrek] Bytes replacement: " + eReplace);
+                            }
 
-                        while (scanner.hasNextLine()){
-                            stringBuilder.append(scanner.nextLine() +"\n" );
-                        }
+                            setResult(result + "W pliku: "+ file.getAbsolutePath()+ " zamieniono " + getCounterReplace() + " ciągów \n");
+                            System.out.println(result);
 
-                        try {
-                            if (stringBuilder.length()!=0)
-                                stringBuilder.deleteCharAt(stringBuilder.length()-1);
-                        } catch (Exception eDeleteCharAt){System.out.println(eDeleteCharAt);}
-
-
-                            replaceAll(stringBuilder,patternOld,patternNew);
-                        setResult(result + "W pliku: "+ file.getAbsolutePath()+ " zamieniono " + getCounterReplace() + " ciągów \n");
-                        System.out.println(result);
-                        text = stringBuilder.toString();
-                        System.out.println(stringBuilder.toString());
-                        FileUtils.writeStringToFile(file, text);
+                            FileUtils.writeByteArrayToFile(file, outputBytes);
 
                         }catch (FileNotFoundException ef){
                             System.out.println(ef);
                         }
-                    }
+
                 } else if (file.isDirectory()) {
                     listf(file.getAbsolutePath(), files , fileExtension,patternOld ,patternNew);
                }
@@ -88,19 +84,53 @@ public class ChangeFiles {
 
     }
 
-    public void replaceAll(StringBuilder builder, String from, String to )
-    {
-        int counter = 0;
-        int index = builder.indexOf(from);
-        while (index != -1)
+    public void naiveAlgoritm (byte[] data, byte[] patternOld){
+        int n = data.length;
+        int m = patternOld.length;
+        System.out.println("Indeksy wystapien wzorca w tekscie");
+        int j;
+        int i=0;
+        while (i<=n-m)
         {
-            builder.replace(index, index + from.length(), to);
-            index += to.length(); // Move to the end of the replacement
-            index = builder.indexOf(from, index);
-            counter++;
+            j=0;
+            while ((j<m) && (patternOld[j] == data[i+j])) j++;
+            if (j==m)
+                replacementPlace.add(i+1);
+            i++;
         }
-        this.setCounterReplace(counter);
     }
+    public byte[] replaceBytes( byte[] data, byte[] patternOld, byte[] patternNew)
+    {
+
+        if (replacementPlace.size()==0)
+        {
+            byte[] result = data;
+            setCounterReplace(0);
+            return result;
+        }
+        else
+        {
+            int tempDifference = (patternNew.length - patternOld.length);
+            byte[] result = new byte[data.length + tempDifference * replacementPlace.size()];
+            int tempDestPos=0;
+            int tempLength=0;
+            int tempSourcePos=0;
+
+            System.arraycopy(data, 0, result, 0, replacementPlace.get(0) - 1);
+            for (int i = 0; i < replacementPlace.size()-1; i++) {
+                System.arraycopy(patternNew, 0, result , replacementPlace.get(i) + tempDifference*i , patternNew.length);
+                tempSourcePos=replacementPlace.get(i)+patternOld.length;
+                tempDestPos = tempSourcePos + tempDifference*(i+1);
+                tempLength = replacementPlace.get(i+1) -  replacementPlace.get(i);
+                System.arraycopy(data, tempSourcePos, result, tempDestPos , tempLength );
+
+            }
+            setCounterReplace(replacementPlace.size());
+            System.out.println(result.toString());
+            return result;
+        }
+    }
+
 
     private static byte[] readBytesFromFile(String filePath) {
 

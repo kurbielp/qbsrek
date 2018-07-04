@@ -16,6 +16,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Formatter;
@@ -110,6 +111,16 @@ public class MainWindow extends Application {
         final TextArea txtInputStringNew = new TextArea();
         gridCenterRight.add(txtInputStringNew, 1, 4);
 
+        final ComboBox codingComboBox = new ComboBox();
+        codingComboBox.getItems().addAll(
+                "UTF-8",
+                "UTF-16",
+                "ASCII"
+
+        );
+
+        gridCenterRight.add(codingComboBox, 1, 5);
+
         //----------GRID 2--------------
 
         Label lblProgramOutput= new Label("Podmienione pliki:");
@@ -141,10 +152,17 @@ public class MainWindow extends Application {
                 }
                 else {
                     ChangeFiles changeFiles = new ChangeFiles();
-
-                    changeFiles.listf(labelSelectedDirectory.getText(), listF , txtExtensionName.getText().replace(".","").replace(" ",""), txtInputStringOld.getText(), txtInputStringNew.getText());
+                    byte[] bytesOldPattern = new byte[0];
+                    byte[] bytesNewPattern = new byte[0];
+                    try {
+                        bytesOldPattern = txtInputStringOld.getText().getBytes(codingComboBox.getValue().toString());
+                        bytesNewPattern = txtInputStringNew.getText().getBytes(codingComboBox.getValue().toString());
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    changeFiles.listf(labelSelectedDirectory.getText(), listF, txtExtensionName.getText().replace(".", "").replace(" ", ""), bytesOldPattern, bytesNewPattern);
                     txtProgramOutput.appendText(changeFiles.getResult());
-                    System.out.println( txtExtensionName.getText().replace(".","").replace(" ",""));
+                    System.out.println(txtExtensionName.getText().replace(".", "").replace(" ", ""));
                     //System.out.println(txtInputString1.getText());
 
                     for (File f : listF) {
