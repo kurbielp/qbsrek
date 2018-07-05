@@ -80,7 +80,8 @@ public class MainWindow extends Application {
 
             public void handle(ActionEvent event) {
                 DirectoryChooser directoryChooser = new DirectoryChooser();
-                File userDirectory = new File ("C:/Users/dell/Desktop/TEST");
+                String pathname = System.getProperty("user.home");
+                File userDirectory = new File (pathname);
                 directoryChooser.setInitialDirectory(userDirectory);
                 File selectedDirectory =
                         directoryChooser.showDialog(primaryStage);
