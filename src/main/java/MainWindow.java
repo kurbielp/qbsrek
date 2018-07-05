@@ -1,4 +1,6 @@
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -113,18 +115,42 @@ public class MainWindow extends Application {
         final TextArea txtInputStringNew = new TextArea();
         gridCenterRight.add(txtInputStringNew, 1, 4);
 
+        GridPane gridEncoding = new GridPane();
+        gridEncoding.setHgap(10);
+        gridEncoding.setVgap(10);
+
+        final TextField txtEncodingOther = new TextField();
+        gridEncoding.add(txtEncodingOther, 1, 0);
+
         final ComboBox codingComboBox = new ComboBox();
         codingComboBox.getItems().addAll(
                 "UTF-8",
                 "Unicode",
-                "ASCII"
+                "ASCII",
+                "Brak",
+                "Inne"
 
         );
+        codingComboBox.valueProperty().addListener(new ChangeListener<String>() {
+            public void changed(ObservableValue ov, String t, String t1) {
+                if(!t1.equals("Inne"))
+                {
+                    txtEncodingOther.setText("");
+                    txtEncodingOther.setDisable(true);
+                } else
+                    {
+                        txtEncodingOther.setDisable(false);
+                    }
+            }
+        });
         codingComboBox.getSelectionModel().selectFirst();
         Label lblCodingType = new Label("Typ kodowania:");
         gridCenterRight.add(lblCodingType, 0, 5);
 
-        gridCenterRight.add(codingComboBox, 1, 5);
+
+        gridEncoding.add(codingComboBox, 0, 0);
+
+        gridCenterRight.add(gridEncoding, 1, 5);
 
         //----------GRID 2--------------
 
@@ -207,9 +233,9 @@ public class MainWindow extends Application {
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
-                    changeFiles.listf(labelSelectedDirectory.getText(), listF, txtExtensionName.getText().replace(".", "").replace(" ", ""), bytesOldPattern, bytesNewPattern);
+                    changeFiles.listf(labelSelectedDirectory.getText(), listF, txtExtensionName.getText().replace(" ", ""), bytesOldPattern, bytesNewPattern);
                     txtProgramOutput.appendText(changeFiles.getResult());
-                    System.out.println(txtExtensionName.getText().replace(".", "").replace(" ", ""));
+                    System.out.println(txtExtensionName.getText().replace(" ", ""));
                     //System.out.println(txtInputString1.getText());
 
                     for (File f : listF) {

@@ -35,6 +35,14 @@ public class ChangeFiles {
 
     private int counterReplace = 0;
 
+    public ArrayList<Integer> getReplacementPlace() {
+        return replacementPlace;
+    }
+
+    public void setReplacementPlace(ArrayList<Integer> replacementPlace) {
+        this.replacementPlace = replacementPlace;
+    }
+
     ArrayList<Integer> replacementPlace = new ArrayList<Integer>();
 
     public void listf(String directoryPath, List<File> files , String fileExtension, byte[] patternOld,byte[] patternNew ){
@@ -118,17 +126,17 @@ public class ChangeFiles {
             int tempSourcePos=0;
             System.out.println(patternNew.toString());
             System.arraycopy(data, 0, result, 0, replacementPlace.get(0) );
-            for (int i = 0; i < replacementPlace.size()-1; i++) {
-                if(replacementPlace.get(i)+tempDifference*i<result.length)
+            for (int i = 0; i < replacementPlace.size(); i++) {
+                if(replacementPlace.get(i)+tempDifference*i+patternNew.length-1<result.length)
                     System.arraycopy(patternNew, 0, result , replacementPlace.get(i) + tempDifference*(i) , patternNew.length);
                 tempSourcePos=replacementPlace.get(i)+patternOld.length;
                 tempDestPos = replacementPlace.get(i) + (tempDifference)*(i) + patternNew.length ;
                 if (i+1<replacementPlace.size())
-                    tempLength = replacementPlace.get(i+1) -  replacementPlace.get(i)-patternNew.length;
+                    tempLength = replacementPlace.get(i+1) -  replacementPlace.get(i)-patternOld.length;
                 else
-                    tempLength = result.length -  replacementPlace.get(i)-patternNew.length;
+                    tempLength = result.length -  (replacementPlace.get(i)+patternNew.length+ tempDifference*i);
                 //tempLength = replacementPlace.get(i+1) -  replacementPlace.get(i);
-                if(tempDestPos<result.length)
+                if(tempDestPos<result.length && tempLength>0)
                     System.arraycopy(data, tempSourcePos, result, tempDestPos , tempLength );
 
             }
@@ -138,7 +146,7 @@ public class ChangeFiles {
         }
     }
 
-
+/*
     private static byte[] readBytesFromFile(String filePath) {
 
         FileInputStream fileInputStream = null;
@@ -169,5 +177,5 @@ public class ChangeFiles {
         return bytesArray;
 
     }
-
+*/
 }
