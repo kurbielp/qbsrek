@@ -70,7 +70,7 @@ public class MainWindow extends Application {
         gridChoseFile.setHgap(10);
         gridChoseFile.setVgap(10);
 
-        final Label labelSelectedDirectory = new Label("No Directory selected");
+        final Label labelSelectedDirectory = new Label("Nie wybrano folderu");
         gridChoseFile.add(labelSelectedDirectory, 1, 0);
 
         DirectoryChooser txtDirectoryName = new DirectoryChooser();
@@ -86,7 +86,7 @@ public class MainWindow extends Application {
                         directoryChooser.showDialog(primaryStage);
 
                 if(selectedDirectory == null){
-                    labelSelectedDirectory.setText("No Directory selected");
+                    labelSelectedDirectory.setText("Nie wybrano folderu");
                 }else{
                     labelSelectedDirectory.setText(selectedDirectory.getAbsolutePath());
                 }
@@ -127,7 +127,6 @@ public class MainWindow extends Application {
                 "UTF-8",
                 "Unicode",
                 "ASCII",
-                "Brak",
                 "Inne"
 
         );
@@ -170,14 +169,14 @@ public class MainWindow extends Application {
         TextField txtInputString2 = new TextField();
         grid.add(txtInputString2, 1, 4);
         */
-        final boolean[][] invalidConditions = {{false,false,false,false}};
+        final boolean[][] invalidConditions = {{false,false,false,false,false}};
         final List<File> listF = new ArrayList<File>();
         Button btnReplace = new Button();
         btnReplace.setText("Replace");
         btnReplace.setOnAction(new EventHandler<ActionEvent>() {
 
             public void handle(ActionEvent event) {
-                if (labelSelectedDirectory.getText() == "No Directory selected"){
+                if (labelSelectedDirectory.getText() == "Nie wybrano folderu"){
                     invalidConditions[0][1] =true;
                 } else { invalidConditions[0][1] =false;}
                 if (txtExtensionName.getText().equals("")){
@@ -191,58 +190,41 @@ public class MainWindow extends Application {
                     invalidConditions[0][0]=false;
                 } else { invalidConditions[0][0]=true;}
                 System.out.println(invalidConditions[0][0]);
-                if(invalidConditions[0][0]==true){
-                    Stage errorWindow = new Stage();
-                    errorWindow.setTitle("Błąd");
-                    GridPane gridError = new GridPane();
 
-                    gridError.setAlignment(Pos.TOP_LEFT);
-                    gridError.setHgap(10);
-                    gridError.setVgap(10);
-                    gridError.setPadding(new Insets(25, 25, 25, 25));
-                    Label lblError= new Label("Wystąpiły następujące błędy: \n");
-                    if (invalidConditions[0][1]==true)
-                        lblError.setText(lblError.getText() + "Nie wybrano folderu \n");
-                    if (invalidConditions[0][2]==true)
-                        lblError.setText(lblError.getText() + "Nie wprowadzono rozszerzenia pliku \n");
-                    if (invalidConditions[0][3]==true)
-                        lblError.setText(lblError.getText() + "Nie wprowadzono ciągu znaków (stary) \n");
-                    gridError.add(lblError, 0, 0);
-                    final Button btnErrorClose = new Button();
-                    btnErrorClose.setText("OK");
-                    btnErrorClose.setOnAction(new EventHandler<ActionEvent>() {
 
-                        public void handle(ActionEvent event) {
-                            // get a handle to the stage
-                            Stage stage = (Stage) btnErrorClose.getScene().getWindow();
-                            // do what you have to do
-                            stage.close();
-                        }
-                    });
-                    gridError.add(btnErrorClose, 0, 1);
-                    errorWindow.setScene(new Scene(gridError, 300, 300));
-                    errorWindow.show();
-                }
-                else {
                     ChangeFiles changeFiles = new ChangeFiles();
                     byte[] bytesOldPattern = new byte[0];
                     byte[] bytesNewPattern = new byte[0];
                     try {
-                        bytesOldPattern = txtInputStringOld.getText().getBytes(codingComboBox.getValue().toString());
-                        bytesNewPattern = txtInputStringNew.getText().getBytes(codingComboBox.getValue().toString());
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    changeFiles.listf(labelSelectedDirectory.getText(), listF, txtExtensionName.getText().replace(" ", ""), bytesOldPattern, bytesNewPattern);
-                    txtProgramOutput.appendText(changeFiles.getResult());
-                    System.out.println(txtExtensionName.getText().replace(" ", ""));
-                    //System.out.println(txtInputString1.getText());
+                        if(codingComboBox.getValue().toString().equals("Inne"))
+                        {
+                            bytesOldPattern = txtInputStringOld.getText().getBytes(txtEncodingOther.getText());
+                            bytesNewPattern = txtInputStringNew.getText().getBytes(txtEncodingOther.getText());
+                        } else {
 
-                    for (File f : listF) {
-                        System.out.println(f.getName());
-                        txtProgramOutput.appendText(f.getName() + "\n");
+                            bytesOldPattern = txtInputStringOld.getText().getBytes(codingComboBox.getValue().toString());
+                            bytesNewPattern = txtInputStringNew.getText().getBytes(codingComboBox.getValue().toString());
+                        }
+                    } catch (UnsupportedEncodingException e) {
+                        System.out.println(e);
+                        invalidConditions[0][0]=true;
+                        invalidConditions[0][4]=true;
+
                     }
-                }
+                    if(invalidConditions[0][0]==true){
+                        ErrorWindow errorWindow = new ErrorWindow(invalidConditions);
+                    }else {
+
+                        changeFiles.listf(labelSelectedDirectory.getText(), listF, txtExtensionName.getText().replace(" ", ""), bytesOldPattern, bytesNewPattern);
+                        txtProgramOutput.appendText(changeFiles.getResult());
+                        System.out.println(txtExtensionName.getText().replace(" ", ""));
+                        //System.out.println(txtInputString1.getText());
+
+                        for (File f : listF) {
+                            System.out.println(f.getName());
+                            txtProgramOutput.appendText(f.getName() + "\n");
+                        }
+                    }
             }
         });
         gridCenterRight.add(btnReplace, 0, 6);

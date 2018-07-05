@@ -140,7 +140,7 @@ public class ChangeFiles {
                     System.arraycopy(data, tempSourcePos, result, tempDestPos , tempLength );
 
             }
-            setCounterReplace(replacementPlace.size()-1);
+            setCounterReplace(replacementPlace.size());
             System.out.println("RESULT " + result.toString());
             return result;
         }
