@@ -1,3 +1,5 @@
+package app;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,6 +27,16 @@ public class ChangeFiles {
 
     private String result="";
 
+    public String getIfResult() {
+        return ifResult;
+    }
+
+    public void setIfResult(String ifResult) {
+        this.ifResult = ifResult;
+    }
+
+    private String ifResult="";
+
     public int getCounterReplace() {
         return counterReplace;
     }
@@ -44,6 +56,58 @@ public class ChangeFiles {
     }
 
     ArrayList<Integer> replacementPlace = new ArrayList<Integer>();
+
+    public int getIfFileNumber() {
+        return ifFileNumber;
+    }
+
+    public void setIfFileNumber(int ifFileNumber) {
+        this.ifFileNumber = ifFileNumber;
+    }
+
+    private int ifFileNumber=0;
+
+    public void ifListf(String directoryPath, List<File> files , String fileExtension, byte[] patternOld ){
+
+
+        File directory = new File(directoryPath);
+        //System.out.println(directoryPath);
+        try {
+
+            File[] fList = directory.listFiles();
+            for (File file : fList) {
+                if (file.isFile() && fileExtension.equals(FilenameUtils.getExtension(file.getName())) ) {
+
+
+                    System.out.println("ZNALAZlem plik");
+                    //System.out.println();
+                    try{
+
+                        //byte[] data = readBytesFromFile(file.getAbsolutePath());
+                        byte[] data = FileUtils.readFileToByteArray(file);
+                        replacementPlace.clear();
+                        naiveAlgoritm(data,patternOld);
+                        System.out.println(replacementPlace.size());
+                        //naiveAlgoritm(data,patternOld);
+                        if(getReplacementPlace().size()>0) {
+                            setIfFileNumber(getIfFileNumber()+1);
+                            setIfResult(ifResult + file.getAbsolutePath() + "\n");
+                            System.out.println(getIfResult());
+                        }
+
+                    }catch (FileNotFoundException ef){
+                        System.out.println(ef);
+                    }
+
+                } else if (file.isDirectory()) {
+                    ifListf(file.getAbsolutePath(), files , fileExtension,patternOld );
+                }
+            }
+        }catch (Exception e){
+            System.out.println( "[qbsrek] ChangesFiles.listf " + "[error] "+ e);
+        }
+
+    }
 
     public void listf(String directoryPath, List<File> files , String fileExtension, byte[] patternOld,byte[] patternNew ){
 
@@ -73,8 +137,8 @@ public class ChangeFiles {
                             }catch (Exception eReplace){
                                 System.out.println("[qbsrek] Bytes replacement: " + eReplace);
                             }
-
-                            setResult(result + "W pliku: "+ file.getAbsolutePath()+ " zamieniono " + getCounterReplace() + " ciągów \n");
+                            if(getReplacementPlace().size()>0)
+                                setResult(result + "W pliku: "+ file.getAbsolutePath()+ " zamieniono " + getCounterReplace() + " ciągów \n");
                             System.out.println(result);
 
                             FileUtils.writeByteArrayToFile(file, outputBytes);

@@ -1,3 +1,7 @@
+package app;
+
+import app.ChangeFiles;
+import app.ErrorWindow;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -5,7 +9,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -14,16 +17,16 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Formatter;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 public class MainWindow extends Application {
 
@@ -193,18 +196,19 @@ public class MainWindow extends Application {
                 System.out.println(invalidConditions[0][0]);
 
 
-                    ChangeFiles changeFiles = new ChangeFiles();
+                    final ChangeFiles changeFiles = new ChangeFiles();
                     byte[] bytesOldPattern = new byte[0];
                     byte[] bytesNewPattern = new byte[0];
                     try {
                         if(codingComboBox.getValue().toString().equals("Inne"))
                         {
-                            bytesOldPattern = txtInputStringOld.getText().getBytes(txtEncodingOther.getText());
-                            bytesNewPattern = txtInputStringNew.getText().getBytes(txtEncodingOther.getText());
+                            bytesOldPattern = txtInputStringOld.getText().replaceAll("\n", System.getProperty("line.separator")).getBytes(txtEncodingOther.getText());
+                            bytesNewPattern = txtInputStringNew.getText().replaceAll("\n", System.getProperty("line.separator")).getBytes(txtEncodingOther.getText());
                         } else {
 
-                            bytesOldPattern = txtInputStringOld.getText().getBytes(codingComboBox.getValue().toString());
-                            bytesNewPattern = txtInputStringNew.getText().getBytes(codingComboBox.getValue().toString());
+                            bytesOldPattern = txtInputStringOld.getText().replaceAll("\n", System.getProperty("line.separator")).getBytes(codingComboBox.getValue().toString());
+
+                            bytesNewPattern = txtInputStringNew.getText().replaceAll("\n", System.getProperty("line.separator")).getBytes(codingComboBox.getValue().toString());
                         }
                     } catch (UnsupportedEncodingException e) {
                         System.out.println(e);
@@ -216,15 +220,74 @@ public class MainWindow extends Application {
                         ErrorWindow errorWindow = new ErrorWindow(invalidConditions);
                     }else {
 
-                        changeFiles.listf(labelSelectedDirectory.getText(), listF, txtExtensionName.getText().replace(" ", ""), bytesOldPattern, bytesNewPattern);
-                        txtProgramOutput.appendText(changeFiles.getResult());
-                        System.out.println(txtExtensionName.getText().replace(" ", ""));
-                        //System.out.println(txtInputString1.getText());
+                        changeFiles.ifListf(labelSelectedDirectory.getText(), listF, txtExtensionName.getText().replace(" ", ""), bytesOldPattern);
 
-                        for (File f : listF) {
-                            System.out.println(f.getName());
-                            txtProgramOutput.appendText(f.getName() + "\n");
-                        }
+
+                        Stage errorWindow = new Stage();
+                        errorWindow.setTitle("Potwiedzenie");
+
+
+                        GridPane gridConfirmationTop = new GridPane();
+                        gridConfirmationTop.setAlignment(Pos.TOP_LEFT);
+                        gridConfirmationTop.setHgap(10);
+                        gridConfirmationTop.setVgap(10);
+                        gridConfirmationTop.setPadding(new Insets(25, 25, 25, 25));
+                        Label lblError= new Label("Czy na pewno chcesz zmienić następujące " + changeFiles.getIfFileNumber() + " pliki/plików:");
+                        changeFiles.setIfFileNumber(0);
+                        gridConfirmationTop.add(lblError, 0, 0);
+                        TextArea txtPliki = new TextArea();
+                        txtPliki.setText(changeFiles.getIfResult());
+                        ScrollPane sp = new ScrollPane();
+                        sp.setContent(txtPliki);
+                        gridConfirmationTop.add(txtPliki, 0, 1);
+
+                        GridPane gridConfirmationBottom = new GridPane();
+                        gridConfirmationBottom.setAlignment(Pos.TOP_LEFT);
+                        gridConfirmationBottom.setHgap(250);
+                        gridConfirmationBottom.setVgap(10);
+                        gridConfirmationBottom.setPadding(new Insets(25, 25, 25, 25));
+
+                        final Button btnAccept = new Button();
+                        btnAccept.setText("OK");
+                        final byte[] finalBytesOldPattern = bytesOldPattern;
+                        final byte[] finalBytesNewPattern = bytesNewPattern;
+                        btnAccept.setOnAction(new EventHandler<ActionEvent>() {
+
+                            public void handle(ActionEvent event) {
+                                Stage stage = (Stage) btnAccept.getScene().getWindow();
+
+                                changeFiles.listf(labelSelectedDirectory.getText(), listF, txtExtensionName.getText().replace(" ", ""), finalBytesOldPattern, finalBytesNewPattern);
+                                txtProgramOutput.appendText(changeFiles.getResult());
+                                System.out.println(txtExtensionName.getText().replace(" ", ""));
+
+                                //System.out.println(txtInputString1.getText());
+
+                                for (File f : listF) {
+                                    System.out.println(f.getName());
+                                    txtProgramOutput.appendText(f.getName() + "\n");
+                                }
+
+                                stage.close();
+                            }
+                        });
+                        gridConfirmationBottom.add(btnAccept, 0, 0);
+
+                        final Button btnCancel = new Button();
+                        btnCancel.setText("Anuluj");
+                        btnCancel.setOnAction(new EventHandler<ActionEvent>() {
+
+                            public void handle(ActionEvent event) {
+                                Stage stage = (Stage) btnCancel.getScene().getWindow();
+
+                                stage.close();
+                            }
+                        });
+                        gridConfirmationBottom.add(btnCancel, 1, 0);
+                        VBox vBox = new VBox(gridConfirmationTop,gridConfirmationBottom);
+                        errorWindow.setScene(new Scene(vBox, 500, 500));
+                        errorWindow.show();
+
+
                     }
             }
         });
