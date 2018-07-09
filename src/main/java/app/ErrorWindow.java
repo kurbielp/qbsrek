@@ -31,6 +31,8 @@ public class ErrorWindow {
             lblError.setText(lblError.getText() + "Nie wprowadzono ciągu znaków (stary) \n");
         if (invalidConditions[0][4]==true)
             lblError.setText(lblError.getText() + "Nie rozpoznano typu kodowania \n");
+        if (invalidConditions[0][5]==true)
+            lblError.setText(lblError.getText() + "Wprowadzona reprezentacja heksadecymalna bajtów jest nieprawidłowa \n");
         gridError.add(lblError, 0, 0);
         final Button btnErrorClose = new Button();
         btnErrorClose.setText("OK");
@@ -44,7 +46,7 @@ public class ErrorWindow {
             }
         });
         gridError.add(btnErrorClose, 0, 1);
-        errorWindow.setScene(new Scene(gridError, 300, 300));
+        errorWindow.setScene(new Scene(gridError, 500, 300));
         errorWindow.show();
     }
 }

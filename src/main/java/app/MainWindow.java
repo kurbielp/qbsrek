@@ -131,6 +131,7 @@ public class MainWindow extends Application {
                 "UTF-8",
                 "Unicode",
                 "ASCII",
+                "Reprezentacja Heksadecymalna",
                 "Inne"
 
         );
@@ -173,10 +174,11 @@ public class MainWindow extends Application {
         TextField txtInputString2 = new TextField();
         grid.add(txtInputString2, 1, 4);
         */
-        final boolean[][] invalidConditions = {{false,false,false,false,false}};
+        final boolean[][] invalidConditions = {{false,false,false,false,false,false}};
         final List<File> listF = new ArrayList<File>();
         Button btnReplace = new Button();
         btnReplace.setText("Replace");
+        btnReplace.setPrefWidth(100);
         btnReplace.setOnAction(new EventHandler<ActionEvent>() {
 
             public void handle(ActionEvent event) {
@@ -204,7 +206,21 @@ public class MainWindow extends Application {
                         {
                             bytesOldPattern = txtInputStringOld.getText().replaceAll("\n", System.getProperty("line.separator")).getBytes(txtEncodingOther.getText());
                             bytesNewPattern = txtInputStringNew.getText().replaceAll("\n", System.getProperty("line.separator")).getBytes(txtEncodingOther.getText());
-                        } else {
+                        }
+                        else if(codingComboBox.getValue().toString().equals("Reprezentacja Heksadecymalna"))
+                        {
+                            try {
+                                //bytesOldPattern = hexStringToByteArray(txtInputStringOld.getText().replaceAll("\n", System.getProperty("")));
+                                //bytesNewPattern = hexStringToByteArray(txtInputStringNew.getText().replaceAll("\n", System.getProperty("")));
+                                bytesOldPattern= hexStringToByteArray( txtInputStringOld.getText().replaceAll("\n", "").replaceAll(" ", ""));
+                                bytesNewPattern= hexStringToByteArray(txtInputStringNew.getText().replaceAll("\n", "").replaceAll(" ", ""));
+                            }catch (Exception eHex){
+                                System.out.println(eHex);
+                                invalidConditions[0][0]=true;
+                                invalidConditions[0][5]=true;
+                            }
+                        }
+                        else {
 
                             bytesOldPattern = txtInputStringOld.getText().replaceAll("\n", System.getProperty("line.separator")).getBytes(codingComboBox.getValue().toString());
 
@@ -249,6 +265,7 @@ public class MainWindow extends Application {
 
                         final Button btnAccept = new Button();
                         btnAccept.setText("OK");
+                        btnAccept.setPrefWidth(100);
                         final byte[] finalBytesOldPattern = bytesOldPattern;
                         final byte[] finalBytesNewPattern = bytesNewPattern;
                         btnAccept.setOnAction(new EventHandler<ActionEvent>() {
@@ -274,6 +291,7 @@ public class MainWindow extends Application {
 
                         final Button btnCancel = new Button();
                         btnCancel.setText("Anuluj");
+                        btnCancel.setPrefWidth(100);
                         btnCancel.setOnAction(new EventHandler<ActionEvent>() {
 
                             public void handle(ActionEvent event) {
@@ -308,5 +326,15 @@ public class MainWindow extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
+    }
+
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
     }
 }
